@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap');
+/* Provide sufficient contrast against white background */
+a {
+  color: #0366d6;
+}
+
+body {
+  font-family: 'Lato', 'Verdana', serif;
+}
+
+code {
+  color: #E01A76;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
