@@ -1,5 +1,5 @@
 ﻿import React, { Component } from 'react';
-import {UncontrolledCollapse, Button} from "reactstrap";
+import {UncontrolledCollapse} from "reactstrap";
 
 export class Panel extends Component {
     static displayName = Panel.name;
@@ -67,7 +67,8 @@ export class Panel extends Component {
         this.setState({
             computers: this.state.computers.map(computer =>{
                 if(computer.computerId === computerId) {
-                    return {...computer, parts: computer.parts.filter(p => p.partId !== index)}
+                    let newComputer = {...computer, parts: computer.parts.filter(p => p.partId !== index)}
+                    return {...newComputer, price: this.calculateComputerPrice(newComputer)}
                 }
                 return computer;
             })
@@ -146,19 +147,24 @@ export class Panel extends Component {
             },
             body: JSON.stringify(body)
         })
-        console.log(response)
+        if(response.status === 200)
+            this.setState({message: 'Zaktualizowano dane'})
+        else if(response.status === 403)
+            this.setState({message: 'Błędne dane logowania'})
+        else 
+            this.setState({message: 'Błędne dane'})
     }
 
 
     render() {
-        let message = this.state.message !== '' ? <div className="alert alert-primary" role="alert">
+        let message = this.state.message !== '' ? <div className="alert alert-primary mt-3" role="alert">
             {this.state.message}
             </div> : "";
         let contents = this.state.loading
             ? <p><em>Loading...</em></p>
             : this.state.computers.map((computer, index) =>
-                <div key={computer.computerId} >
-                    <div className="h4" id={"toggler-computer-" + computer.computerId}>{computer.name}</div>
+                <div key={computer.computerId} className="list-group-item">
+                    <div className="h4" id={"toggler-computer-" + computer.computerId}>{computer.name}<span className="float-end">{(computer.price/100).toFixed(2)} zł</span></div>
                     <UncontrolledCollapse toggler={"#toggler-computer-" + computer.computerId}>
                         <div>
                             <span className="btn btn-danger mb-1 float-end" onClick={(e) => this.removeComputer(e, computer.computerId)}>Usuń</span>
@@ -178,7 +184,7 @@ export class Panel extends Component {
                             {computer.parts.map(part =>
                                 <div key={part.partId}>
                                     <div className="h5" id={"toggler-computer-" + computer.computerId + "-part-" + part.partId}>{part.name}</div>
-                                    <UncontrolledCollapse defaultOpen={true} toggler={"#toggler-computer-" + computer.computerId + "-part-" + part.partId}>{part.name}>
+                                    <UncontrolledCollapse defaultOpen={true} toggler={"#toggler-computer-" + computer.computerId + "-part-" + part.partId}>
                                         <div className="mb-2 row">
                                             <div className="col-sm-6">
                                                 <label className="form-label">Nazwa</label>
@@ -205,7 +211,6 @@ export class Panel extends Component {
                                                     <div className="btn btn-danger col-2" onClick={(e) => this.removePart(e, computer.computerId, part.partId)}>Usuń</div>
                                                 </div>
                                             </div>
-                                            <hr className="mt-4"/>
                                         </div>
                                     </UncontrolledCollapse>
     
@@ -217,13 +222,15 @@ export class Panel extends Component {
             );
         return (
             <div>
-                <div className="mb-2">
-                    <div className="btn btn-primary float-end mt-3" onClick={this.addComputer}>Dodaj zestaw</div>
-                    <h1>Panel</h1></div>
-                <form onSubmit={event => event.preventDefault()}>
+
+                <form className="list-group computer-list" onSubmit={event => event.preventDefault()}>
+                    <div className="pb-2 list-group-item">
+                        <div className="btn btn-primary float-end mt-3" onClick={this.addComputer}>Dodaj zestaw</div>
+                        <h1>Panel</h1>
+                    </div>
                     {contents}
-                    {message}
-                    <div className="row mb-5">
+                    <div className="list-group-item">
+                    <div className="row  py-2" >
                         <div className="col-sm-5">
                             <input type="text" onChange={this.handleCredentialsChange} placeholder="Nazwa użytkownika" className="form-control" name="username" value={this.state.username}/>
                         </div>
@@ -234,7 +241,9 @@ export class Panel extends Component {
                             <button onClick={this.submitData} type="button" className="btn btn-primary">Zapisz zmiany</button>
                         </div>
                     </div>
+                    </div>
                 </form>
+                {message}
             </div>
         );
     }

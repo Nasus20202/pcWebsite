@@ -2,6 +2,17 @@
   white-space: normal;
   text-align: center;
   word-break: break-all;
+  transition: 0.3s
+}
+
+a.navbar-brand:hover {
+  transform: scale(1.1);
+}
+a.nav-link {
+  transition: 0.3s
+}
+a.nav-link:hover {
+  transform: scale(1.1);
 }
 
 html {
@@ -14,5 +25,9 @@ html {
 }
 
 .box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .075);
+}
+
+nav {
+  background: white;
 }

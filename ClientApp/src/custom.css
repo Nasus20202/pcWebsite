@@ -6,6 +6,12 @@ a {
 
 body {
   font-family: 'Lato', 'Verdana', serif;
+  background: #f9f9f9;
+  color: #333;
+}
+
+span {
+  color: #333;
 }
 
 code {
@@ -17,3 +23,14 @@ code {
   background-color: #1b6ec2;
   border-color: #1861ac;
 }
+
+@media only screen and (max-width: 768px) {
+  .table{
+    font-size: 0.8em;
+  }
+}
+.computer-list {
+  box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+}
+
+
