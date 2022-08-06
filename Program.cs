@@ -17,8 +17,10 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthorization();
 app.UseStaticFiles();
 app.UseRouting();
+
 
 app.MapControllerRoute(
     name: "default",

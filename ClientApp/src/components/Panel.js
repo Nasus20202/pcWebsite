@@ -6,27 +6,25 @@ export class Panel extends Component {
 
     constructor(props) {
         super(props);
-        this.submitData = this.submitData.bind();
+        this.submitData = this.submitData.bind(this);
         this.handleComputerChange = this.handleComputerChange.bind(this);
         this.removeComputer = this.removeComputer.bind(this);
         this.addPart = this.addPart.bind(this);
         this.handlePartChange = this.handlePartChange.bind(this);
         this.removePart = this.removePart.bind(this);
         this.addComputer = this.addComputer.bind(this);
-        this.collapse = this.collapse.bind(this);
+        this.handleCredentialsChange = this.handleCredentialsChange.bind(this);
         this.state = {
-            computers: []
+            computers: [],
+            username: '',
+            password: '',
+            message: ''
         }
     }
     componentDidMount() {
         this.populateComputersData();
     }
     
-    submitData(event){
-        event.preventDefault();
-        alert(12)
-    }
-
     handleComputerChange(event, index){
         let name = event.target.name, value = event.target.value;
         this.setState({
@@ -64,14 +62,6 @@ export class Panel extends Component {
             })
         });
     }
-    
-    collapse(event, id){
-        let elem = document.getElementById(id);
-        if(elem.classList.contains("collapse"))
-            elem.classList.remove("collapse")
-        else 
-            elem.classList.add("collapse")
-    }
 
     removePart(event, computerId, index){
         this.setState({
@@ -89,7 +79,7 @@ export class Panel extends Component {
         this.setState({
             computers: this.state.computers.map(computer =>{
                 if(computer.computerId === computerId) {
-                    return {...computer, parts: computer.parts.map(part => {
+                    let newComputer =  {...computer, parts: computer.parts.map(part => {
                         if(part.partId === index){
                             if(name === "name")
                                 return {...part, name: value}
@@ -100,30 +90,70 @@ export class Panel extends Component {
                             if(name === "photo")
                                 return {...part, photo: value}
                             if(name === "price") {
-                                let floatValue = parseFloat(value)
+                                let intValue = parseInt(value)
                                 if(value === "")
                                     return {...part, price: 0}
-                                else if(!isNaN(floatValue))
-                                    return {...part, price: floatValue}
+                                else if(!isNaN(intValue))
+                                    return {...part, price: intValue}
                                 else 
                                     return {...part}
                             }
                         }
                         return part;
                     })}
+                    return {...newComputer, price: this.calculateComputerPrice(newComputer)}
                 }
                 return computer;
             })
         })
     }
 
+    calculateComputerPrice(computer){
+        let price = 0;
+        computer.parts.forEach(part => {price += part.price});
+        return price;
+    }
+    
+    handleCredentialsChange(event){
+        this.setState({
+            [event.target.name]: event.target.value
+        })
+    }
+    
     async populateComputersData() {
         const response = await fetch('api/computers');
         let data = await response.json();
         this.setState({ computers: data, loading: false });
     }
 
+    async submitData(event){
+        event.preventDefault();
+        let body = [];
+        this.state.computers.forEach(computer => {
+            let parts = [];
+            computer.parts.forEach(part => {
+                parts = [...parts, {name: part.name, about: part.about, price: part.price, category: part.category, photo: part.photo}]
+            })
+            let computerData = {name: computer.name, about: computer.about, parts: parts}
+            body = [...body, computerData]
+        })
+        const response = await fetch('api/computers', {
+            method: 'POST',
+            headers: {
+                'username': this.state.username,
+                'password': this.state.password,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        })
+        console.log(response)
+    }
+
+
     render() {
+        let message = this.state.message !== '' ? <div className="alert alert-primary" role="alert">
+            {this.state.message}
+            </div> : "";
         let contents = this.state.loading
             ? <p><em>Loading...</em></p>
             : this.state.computers.map((computer, index) =>
@@ -142,39 +172,41 @@ export class Panel extends Component {
                             <label className="form-label">O zestawie</label>
                             <textarea className="form-control" name="about" value={computer.about} onChange={(e) => this.handleComputerChange(e, computer.computerId)}/>
                         </div>
-                        <div>{computer.price/100} zł</div>
+                        <div className="h5">Cena: <b>{(computer.price/100).toFixed(2)} zł</b></div>
                         <div>
                             <div className="h4">Podzespoły</div>
                             {computer.parts.map(part =>
                                 <div key={part.partId}>
                                     <div className="h5" id={"toggler-computer-" + computer.computerId + "-part-" + part.partId}>{part.name}</div>
-                                    <UncontrolledCollapse defaultOpen={true} className="mb-2 row" toggler={"#toggler-computer-" + computer.computerId + "-part-" + part.partId}>{part.name}>
-                                        <div className="col-sm-6">
-                                            <label className="form-label">Nazwa</label>
-                                            <input type="text" className="form-control" name="name" value={part.name} onChange={(e) => this.handlePartChange(e, computer.computerId, part.partId)}/>
-                                        </div>
-                                        <div className="col-sm-6">
-                                            <label className="form-label">Kategoria</label>
-                                            <input type="text" className="form-control" name="category" value={part.category} onChange={(e) => this.handlePartChange(e, computer.computerId, part.partId)}/>
-                                        </div>
-                                        <div className="col-sm-6 mt-1">
-                                            <label className="form-label">Opis</label>
-                                            <textarea rows={3} className="form-control" name="about" value={part.about} onChange={(e) => this.handlePartChange(e, computer.computerId, part.partId)}/>
-                                        </div>
-                                        <div className="col-sm-6 mt-3">
-                                            <label className="form-label">Zdjęcie</label>
-                                            <input type="text" className="form-control" name="photo" value={part.photo} onChange={(e) => this.handlePartChange(e, computer.computerId, part.partId)}/>
-                                            <div className="row mt-1">
-                                                <div className="col-2 mt-1">
-                                                    <label className="form-label">Cena</label>
-                                                </div>
-                                                <div className="col-8">
-                                                <input min={0} type="text" className="form-control" name="price" value={part.price} onChange={(e) => this.handlePartChange(e, computer.computerId, part.partId)}/>
-                                                </div>
-                                                <div className="btn btn-danger col-2" onClick={(e) => this.removePart(e, computer.computerId, part.partId)}>Usuń</div>
+                                    <UncontrolledCollapse defaultOpen={true} toggler={"#toggler-computer-" + computer.computerId + "-part-" + part.partId}>{part.name}>
+                                        <div className="mb-2 row">
+                                            <div className="col-sm-6">
+                                                <label className="form-label">Nazwa</label>
+                                                <input type="text" className="form-control" name="name" value={part.name} onChange={(e) => this.handlePartChange(e, computer.computerId, part.partId)}/>
                                             </div>
+                                            <div className="col-sm-6">
+                                                <label className="form-label">Kategoria</label>
+                                                <input type="text" className="form-control" name="category" value={part.category} onChange={(e) => this.handlePartChange(e, computer.computerId, part.partId)}/>
+                                            </div>
+                                            <div className="col-sm-6 mt-1">
+                                                <label className="form-label">Opis</label>
+                                                <textarea rows={3} className="form-control" name="about" value={part.about} onChange={(e) => this.handlePartChange(e, computer.computerId, part.partId)}/>
+                                            </div>
+                                            <div className="col-sm-6 mt-3">
+                                                <label className="form-label">Zdjęcie</label>
+                                                <input type="text" className="form-control" name="photo" value={part.photo} onChange={(e) => this.handlePartChange(e, computer.computerId, part.partId)}/>
+                                                <div className="row mt-1">
+                                                    <div className="col-2 mt-1">
+                                                        <label className="form-label">Cena</label>
+                                                    </div>
+                                                    <div className="col-8">
+                                                    <input min={0} type="text" className="form-control" name="price" value={part.price} onChange={(e) => this.handlePartChange(e, computer.computerId, part.partId)}/>
+                                                    </div>
+                                                    <div className="btn btn-danger col-2" onClick={(e) => this.removePart(e, computer.computerId, part.partId)}>Usuń</div>
+                                                </div>
+                                            </div>
+                                            <hr className="mt-4"/>
                                         </div>
-                                        <hr className="mt-4"/>
                                     </UncontrolledCollapse>
     
                                 </div>
@@ -190,7 +222,18 @@ export class Panel extends Component {
                     <h1>Panel</h1></div>
                 <form onSubmit={event => event.preventDefault()}>
                     {contents}
-                    <button onClick={this.submitData} type="button" className="btn btn-primary">Submit</button>
+                    {message}
+                    <div className="row mb-5">
+                        <div className="col-sm-5">
+                            <input type="text" onChange={this.handleCredentialsChange} placeholder="Nazwa użytkownika" className="form-control" name="username" value={this.state.username}/>
+                        </div>
+                        <div className="col-sm-5">
+                            <input type="password" onChange={this.handleCredentialsChange} placeholder="Hasło" className="form-control" name="password" value={this.state.password}/>
+                        </div>
+                        <div className="col-sm-2">
+                            <button onClick={this.submitData} type="button" className="btn btn-primary">Zapisz zmiany</button>
+                        </div>
+                    </div>
                 </form>
             </div>
         );
