@@ -5,9 +5,10 @@ a {
 }
 
 body {
-  font-family: 'Lato', 'Verdana', serif;
-  background: #f9f9f9;
+  font-family: 'Lato';
+  /*background: #f9f9f9;*/
   color: #333;
+  background: url("bg.webp");
 }
 
 span {
@@ -22,6 +23,11 @@ code {
   color: #fff;
   background-color: #1b6ec2;
   border-color: #1861ac;
+}
+
+.part-photo {
+  max-height: 7vh;
+  max-width: 10vw;
 }
 
 @media only screen and (max-width: 768px) {
